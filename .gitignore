@@ -5,3 +5,8 @@ __pycache__/
 .venv/
 build/
 dist/
+
+# code-review-graph — local dev tooling, not part of the project
+.code-review-graph/
+.mcp.json
+.claude/
