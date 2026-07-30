@@ -20,6 +20,9 @@ parsing (M2), and the leashed narrator + Stage 0–4 lifecycle (M3).
                                                         ── Stage 4 draft()+validate()+evidence gate
 ```
 
+See [docs/REPO_GRAPH.md](docs/REPO_GRAPH.md) for the module dependency graph and a
+"where to change X" index — the map to consult before editing.
+
 The M1 core is also usable directly: `recovery_engine.run(case)` does
 `diagnose → draft → validate` and returns a `Result` whose `.shippable` is true
 only when the pre-delivery gate finds zero violations. The M3 entry point is
