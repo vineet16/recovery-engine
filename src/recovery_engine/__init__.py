@@ -13,7 +13,16 @@ from typing import Union
 from .citations import CitationStore, default_store
 from .engine import Findings, diagnose
 from .letter import Decline, Letter, draft
+from .narrator import Narrator
 from .slots import Case, ProposalFilledBy, SlotSource
+from .statemachine import (
+    Eligibility,
+    FilingTarget,
+    SessionResult,
+    Stage,
+    intake_gate,
+    run_session,
+)
 from .validator import Violation, validate
 from .verdict import Verdict
 
@@ -33,6 +42,14 @@ __all__ = [
     "validate",
     "Result",
     "run",
+    # M3 — narrator + lifecycle
+    "Narrator",
+    "run_session",
+    "SessionResult",
+    "Stage",
+    "Eligibility",
+    "FilingTarget",
+    "intake_gate",
 ]
 
 

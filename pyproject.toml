@@ -7,10 +7,14 @@ name = "recovery-engine"
 version = "0.1.0"
 description = "Deterministic graph engine for Indian health insurance claim-denial recovery (M1: PED ground)"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "pymupdf>=1.24",  # M2 Tier-1 digital PDF parsing
+    "httpx>=0.27",    # M3 LLM client (OpenRouter/Groq)
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+ocr = ["boto3>=1.34"]  # M2 Tier-2 AWS Textract backend (optional)
 
 [tool.setuptools.packages.find]
 where = ["src"]
