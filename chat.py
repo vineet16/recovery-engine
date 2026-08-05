@@ -135,6 +135,10 @@ def report(res) -> None:
         print(f"  Ombudsman cliff: {res.deadlines.ombudsman_cliff} "
               f"({res.deadlines.days_to_cliff()} days left)")
     print(f"  Ships          : {res.shippable}")
+    # shippable also requires zero evidence gaps, so an unexplained False here
+    # reads as a bug when it is actually §13.3 doing its job.
+    for gap in res.evidence_gaps:
+        print(f"  {DIM}└ blocked: {gap.message}{RESET}")
 
     if res.turn_log:
         print(f"\n{DIM}Audit trail — every question asked, and what it recorded:{RESET}")
