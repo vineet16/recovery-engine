@@ -24,6 +24,7 @@ from .engine import Findings, diagnose
 from .grounds import ped
 from .interview import PED_INTERVIEW
 from .letter import Decline, Letter, draft
+from .llm import from_env
 from .narrator import Narrator, TurnLogEntry
 from .parser.base import DocType
 from .slots import Case, SlotSource
@@ -224,7 +225,9 @@ def run_session(
     as_of = as_of or date.today()
     provided_docs = provided_docs or set()
     answers = answers or (lambda slot, q: None)
-    narrator = narrator or Narrator("PED")
+    # from_env() returns None when unconfigured, so the default narrator stays
+    # fully deterministic unless LLM_PROVIDER/*_API_KEY are set (Section 14).
+    narrator = narrator or Narrator("PED", llm=from_env())
 
     deadlines = _deadlines(case, as_of, final_reply_date)
 

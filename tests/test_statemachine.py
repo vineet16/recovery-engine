@@ -133,6 +133,46 @@ def test_ombudsman_target_after_grievance_failed():
     assert res.filing_target == FilingTarget.OMBUDSMAN
 
 
+def test_default_narrator_picks_up_a_configured_llm(monkeypatch):
+    """run_session must honour the documented env vars, not ignore them."""
+    import recovery_engine.statemachine as sm
+
+    built = []
+
+    class _Client:
+        available = True
+
+        def complete(self, system, user, *, temperature=0.0, max_tokens=512):
+            return "unknown"
+
+    def fake_from_env():
+        client = _Client()
+        built.append(client)
+        return client
+
+    monkeypatch.setattr(sm, "from_env", fake_from_env)
+    run_session(
+        eligible_base(),
+        answers=answers_from({"first_diagnosis_date": "01/09/2024"}),
+        provided_docs={DocType.DISCHARGE_SUMMARY},
+        as_of=AS_OF,
+    )
+    assert built, "run_session ignored the environment-configured client"
+
+
+def test_default_narrator_stays_deterministic_without_a_key(monkeypatch):
+    import recovery_engine.statemachine as sm
+
+    monkeypatch.setattr(sm, "from_env", lambda: None)
+    res = run_session(
+        eligible_base(),
+        answers=answers_from({"first_diagnosis_date": "01/09/2024"}),
+        provided_docs={DocType.DISCHARGE_SUMMARY},
+        as_of=AS_OF,
+    )
+    assert res.shippable
+
+
 def test_deadlines_ombudsman_cliff_is_one_year():
     res = run_session(
         eligible_base(),

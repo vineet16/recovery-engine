@@ -10,6 +10,10 @@ parsing is deterministic. With a client, the LLM may rephrase (subject to the
 pre-send guard) and interpret genuinely freeform answers — but the result is
 always re-validated through the deterministic coercion, so the model never
 smuggles a value past the schema.
+
+Rephrasing is additionally withheld from yes/no questions, whose polarity the
+model can invert without tripping any on-topic guard; see
+`_POLARITY_BEARING_KINDS`.
 """
 
 from __future__ import annotations
@@ -32,6 +36,18 @@ _YES = {"yes", "y", "yeah", "yep", "correct", "true", "right", "sure", "did", "i
 _NO = {"no", "n", "nope", "nah", "false", "never", "didn't", "did not", "i didn't", "wasn't", "i wasn't"}
 
 _MONTH_FIRST_FORMATS = ("%B %d %Y", "%b %d %Y", "%B %d, %Y", "%b %d, %Y")
+
+# Yes/no questions are never LLM-rephrased: their meaning lives in their polarity,
+# and a rephrase can invert it while staying perfectly on-topic. Observed: "has
+# there been any gap or break in your renewals?" came back as "have you had
+# continuous coverage ... without any breaks?" — same subject, opposite sense, so
+# a truthful "yes" would record continuity_breaks=True for an unbroken policy and
+# silently drop the L1 moratorium lever. `pre_send_ok` cannot catch this (topic
+# keywords match either way), so the leash here is structural, not heuristic.
+# Dates and enums carry no polarity and are still rephrased for depth; answer
+# *interpretation* stays LLM-assisted for every kind, since the policyholder
+# always saw the scripted wording.
+_POLARITY_BEARING_KINDS = frozenset({"bool"})
 
 
 @dataclass
@@ -110,7 +126,7 @@ class Narrator:
         scripted = q.prompt.format(cited_condition=cited)
 
         text = scripted
-        if self.llm is not None:
+        if self.llm is not None and q.kind not in _POLARITY_BEARING_KINDS:
             try:
                 candidate = self._llm_rephrase(scripted, q)
                 if candidate and pre_send_ok(candidate, q):

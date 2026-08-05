@@ -73,6 +73,70 @@ def test_unparseable_answer_requests_reask():
     assert not out.ok and out.needs_reask
 
 
+class _InvertingLLM:
+    """Stands in for a model that rephrases on-topic but flips the polarity."""
+
+    available = True
+
+    def __init__(self):
+        self.calls = 0
+
+    def complete(self, system, user, *, temperature=0.0, max_tokens=512):
+        self.calls += 1
+        return (
+            "Have you had continuous coverage since the policy started, "
+            "without any breaks in renewal?"
+        )
+
+
+def test_bool_questions_are_never_llm_rephrased():
+    """Polarity-bearing questions must ship scripted, whatever the model says.
+
+    The inverted rephrase passes pre_send_ok (its topic keywords match), so only
+    the structural leash keeps a truthful "yes" from recording the opposite fact.
+    """
+    llm = _InvertingLLM()
+    n = Narrator(llm=llm)
+    q = PED_INTERVIEW_BY_SLOT["continuity_breaks"]
+
+    text = n.render_question(q, _case())
+
+    assert text == q.prompt.format(cited_condition="diabetes mellitus")
+    assert llm.calls == 0, "bool questions must not reach the model at all"
+    # The guard alone would have let the inversion through:
+    assert pre_send_ok(llm.complete("", ""), q)
+
+
+def test_non_bool_questions_still_reach_the_llm():
+    class _Rephraser:
+        available = True
+
+        def complete(self, system, user, *, temperature=0.0, max_tokens=512):
+            return "What date was diabetes mellitus first diagnosed on record?"
+
+    n = Narrator(llm=_Rephraser())
+    q = PED_INTERVIEW_BY_SLOT["first_diagnosis_date"]
+    assert n.render_question(q, _case()) == (
+        "What date was diabetes mellitus first diagnosed on record?"
+    )
+
+
+def test_bool_answers_are_still_llm_interpreted():
+    """Only rendering is withheld for bools; interpretation stays LLM-assisted."""
+
+    class _YesSayer:
+        available = True
+
+        def complete(self, system, user, *, temperature=0.0, max_tokens=512):
+            return "yes"
+
+    n = Narrator(llm=_YesSayer())
+    q = PED_INTERVIEW_BY_SLOT["was_condition_asked"]
+    # Defeats the deterministic yes/no lists, so it falls through to the model.
+    out = n.parse_answer(q, "they absolutely did put that on the form", _case())
+    assert out.ok and out.value is True
+
+
 def test_turn_log_is_the_audit_trail():
     n = Narrator()
     q = PED_INTERVIEW_BY_SLOT["was_condition_asked"]
