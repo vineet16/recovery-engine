@@ -103,9 +103,18 @@ the version in force at the case's *relevant date* (the denial date), not today.
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e ".[dev]"
-.venv/bin/python demo.py        # M1 letter, M2 parse, M3 full lifecycle
+.venv/bin/python demo.py        # M1 letter, M2 parse, M3 full lifecycle (scripted)
+.venv/bin/python chat.py        # the same lifecycle, interactive — you answer
 .venv/bin/python -m pytest -q   # 56 tests, no network required
 ```
+
+`demo.py` scripts the answers and prints the turn log afterwards. **`chat.py` is
+the conversation**: it parses the bundled PDFs, shows you what came out of them
+with confidence and page anchors, then asks only for the slots still missing —
+stopping the moment a dispositive lever fires. Blank answer means "I don't know"
+and the graph moves on. `chat.py --strong` runs a long-standing policy where the
+documents win the case outright and almost nothing is asked, which is the clearest
+demonstration that the graph — not the model — decides what to ask.
 
 ### Enabling the LLM (optional, M3)
 
@@ -120,6 +129,13 @@ export LLM_MODEL=llama-3.3-70b-versatile   # optional override
 
 The LLM output is always re-validated through the deterministic coercion — it can
 never smuggle a value past the schema, and it never decides the law.
+
+`chat.py` probes the client at startup and prints whether it is actually reachable.
+This matters: `render_question` catches a provider error and falls back to the
+scripted prompt, which is the right behaviour but makes a dead key look identical
+to a working one. Note also that `LLM_PROVIDER` defaults to `openrouter`, so if
+both `OPENROUTER_API_KEY` and `GROQ_API_KEY` are exported, OpenRouter wins unless
+you set `LLM_PROVIDER=groq` explicitly.
 
 **Yes/no questions are never LLM-rephrased.** Their meaning lives in their
 polarity, and a rephrase can invert it while staying perfectly on topic: asked to
