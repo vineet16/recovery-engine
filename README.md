@@ -11,18 +11,50 @@ specified in that document but deliberately not built; see
 
 ## Why this exists
 
-<!-- TODO(vineet): replace this block with the first-person account, 3–5 sentences.
-     The one thing this README cannot supply for you. Concretely:
-       - whose claim was denied, when, on what stated ground
-       - what you actually had to do about it (forms, calls, GRO, ombudsman)
-       - the specific moment it became clear this shouldn't be this hard
-       - why a deterministic engine, and not a chatbot, is the honest answer to it
-     Keep it factual and undramatic — the restraint is the point. -->
+I have not had a claim denied myself. This began with the data.
 
-> **Placeholder.** A denied health-insurance claim is a document problem wearing a
-> legal costume: the policyholder is right, the regulation is on their side, and
-> they still lose because they cannot assemble the argument in the form the
-> Grievance Redressal Officer needs to see it. This engine assembles it.
+Reading through Indian insurance-claims data, one number did not go away: **over a
+third of health-insurance claims are rejected.**<!-- TODO(vineet): add the precise
+source + year here — IRDAI Annual Report or equivalent. A reviewer may check it. -->
+A doctor friend working in a government hospital confirmed the pattern from the
+other side of the counter, and added that it falls hardest on people with the least
+room to absorb it — Ayushman Bharat cardholders, for whom a rejected claim is not a
+reimbursement delay but a bill they cannot pay.
+
+What I found when I looked for the remedy was worse than the denial rate. A cottage
+industry of claim-recovery firms charges **up to 20% of the claim amount** to
+contest a rejection — for a process that is already free. The insurer's own
+Grievance Redressal Officer costs nothing. The Insurance Ombudsman after that costs
+nothing. People are paying a fifth of what they are owed for access to a remedy
+they already have.
+
+They pay it because free is not the same as usable. The policyholder is usually
+right, the regulation is usually on their side, and they lose anyway — because they
+cannot assemble the argument in the form a Grievance Redressal Officer needs to see
+it: the specific clause, the regulation that overrides it, the date arithmetic, in
+writing, citable. That is not a legal problem. It is a document-assembly problem
+wearing a legal costume.
+
+So the thesis this repo tests: **if a policyholder can put the correct citation in
+front of the insurer, most denials do not survive it** — and the ones that do can go
+to the Ombudsman, which is also free. That is a hypothesis, not a measured result;
+the offline eval harness that would put a number on it is M5, and is not built.
+
+And it is the entire reason this is a deterministic engine rather than a chatbot. If
+the argument that reaches the GRO contains one invented citation, the user has spent
+their single credible shot — and they are in a worse position than if they had never
+written. A wrong answer is not a degraded answer here. It is an actively harmful one.
+Hence: the rule engine decides the law, templates narrate, and a validator refuses to
+ship anything the documents and regulations do not support.
+
+**Scope note.** The motivation above is broader than what this repo covers. The
+engine targets **IRDAI-regulated private health insurance** — the Grievance
+Redressal Officer → Insurance Ombudsman rail, under the 2024 IRDAI Master Circular.
+Ayushman Bharat (PM-JAY) runs on a different rail entirely: the National Health
+Authority's grievance machinery, not the Ombudsman, and the moratorium and
+waiting-period levers here do not map onto it. PM-JAY is domain pack #2 — the same
+kernel, a different enforcement rail — and it is not built. Claiming otherwise would
+be the exact failure mode this architecture exists to prevent.
 
 ## Pipeline
 
