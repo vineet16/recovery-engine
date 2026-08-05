@@ -3,9 +3,26 @@
 Deterministic graph engine for Indian health-insurance claim-denial recovery.
 A **rule engine decides the law**, **templates narrate**, and a **validator
 guarantees grounding** — a hallucinated citation is structurally impossible.
-This repo implements **Milestones 1–3** of `ARCHITECTURE.md`: the PED /
-non-disclosure ground, end-to-end — deterministic core (M1), tiered document
-parsing (M2), and the leashed narrator + Stage 0–4 lifecycle (M3).
+This repo implements **Milestones 1–3** of [ARCHITECTURE.md](ARCHITECTURE.md): the
+PED / non-disclosure ground, end-to-end — deterministic core (M1), tiered document
+parsing (M2), and the leashed narrator + Stage 0–4 lifecycle (M3). M4–M8 are
+specified in that document but deliberately not built; see
+[Deliberately out of scope](#deliberately-out-of-scope-later-milestones).
+
+## Why this exists
+
+<!-- TODO(vineet): replace this block with the first-person account, 3–5 sentences.
+     The one thing this README cannot supply for you. Concretely:
+       - whose claim was denied, when, on what stated ground
+       - what you actually had to do about it (forms, calls, GRO, ombudsman)
+       - the specific moment it became clear this shouldn't be this hard
+       - why a deterministic engine, and not a chatbot, is the honest answer to it
+     Keep it factual and undramatic — the restraint is the point. -->
+
+> **Placeholder.** A denied health-insurance claim is a document problem wearing a
+> legal costume: the policyholder is right, the regulation is on their side, and
+> they still lose because they cannot assemble the argument in the form the
+> Grievance Redressal Officer needs to see it. This engine assembles it.
 
 ## Pipeline
 
@@ -55,7 +72,7 @@ the version in force at the case's *relevant date* (the denial date), not today.
 ```bash
 python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 .venv/bin/python demo.py        # M1 letter, M2 parse, M3 full lifecycle
-.venv/bin/python -m pytest -q   # 51 tests
+.venv/bin/python -m pytest -q   # 56 tests, no network required
 ```
 
 ### Enabling the LLM (optional, M3)
@@ -72,11 +89,24 @@ export LLM_MODEL=llama-3.3-70b-versatile   # optional override
 The LLM output is always re-validated through the deterministic coercion — it can
 never smuggle a value past the schema, and it never decides the law.
 
+**Yes/no questions are never LLM-rephrased.** Their meaning lives in their
+polarity, and a rephrase can invert it while staying perfectly on topic: asked to
+rewrite *"has there been any gap or break in your renewals?"*, the model reliably
+returns *"have you had continuous coverage, without any breaks?"* — same subject,
+opposite sense. A truthful "yes" would then record `continuity_breaks=True` for an
+unbroken policy and silently drop the L1 moratorium lever from the letter. The
+on-topic guard cannot catch this (the keywords match either way), so the leash on
+bool slots is structural rather than heuristic — see `_POLARITY_BEARING_KINDS` in
+`narrator.py`. Dates and enums carry no polarity and are still rephrased; answer
+*interpretation* stays LLM-assisted for every kind, since the policyholder always
+saw the scripted wording.
+
 ## Deliberately out of scope (later milestones)
 
-Nexus graph (M5 — L3 currently requires an explicit human ruling, never a guess),
-offline eval harness / golden set (M5), regulatory-freshness agent + precedent
-store (M7), grounds 2–4 deep schemas (M8). Tier-2 OCR ships as a swappable
+Nexus graph (M4 — L3 currently requires an explicit human ruling, never a guess),
+offline eval harness / golden set (M5), lifecycle hardening beyond the deadline
+and evidence gates (M6), regulatory-freshness agent + precedent store (M7),
+grounds 2–4 deep schemas (M8). Tier-2 OCR ships as a swappable
 interface with a fake backend for tests and a real (unexercised) Textract adapter;
 Tiers 3–4 (handwriting vision-LLM, clause extraction) are not built. Non-PED
 grounds are not yet stubbed.
